@@ -33,9 +33,6 @@
 								<div class="mb-3">
 									<div class="mb-2 w-100">
 										<label class="text-muted" for="password">Password</label>
-										<a href="forgot.html" class="float-end">
-											Forgot Password?
-										</a>
 									</div>
 									<input id="password" type="password" class="form-control" name="password" required>
 								    <div class="invalid-feedback">
@@ -43,22 +40,24 @@
 								    	</div>
 								</div>
 
+								<div class="mb-3 form-check">
+									<input type="checkbox" name="remember" id="remember" class="form-check-input">
+									<label for="remember" class="form-check-label">Remember Me</label>
+								</div>
+
+								<!-- Demo controls: simulation-only. These do NOT perform real SQL injection or network scans. -->
+								<div class="mb-3">
+									<input type="checkbox" id="simulateSqli" class="form-check-input">
+									<label for="simulateSqli" class="form-check-label ms-2">Simulate SQL injection (demo only)</label>
+								</div>
+
 								<div class="d-flex align-items-center">
-									<div class="form-check">
-										<input type="checkbox" name="remember" id="remember" class="form-check-input">
-										<label for="remember" class="form-check-label">Remember Me</label>
-									</div>
 									<button type="submit" class="btn btn-primary ms-auto">
 										Login
 									</button>
 								</div>
 							</form>
 							<div id="loginMessage" class="mt-3" aria-live="polite"></div>
-						</div>
-						<div class="card-footer py-3 border-0">
-							<div class="text-center">
-								Don't have an account? <a href="register.html" class="text-dark">Create One</a>
-							</div>
 						</div>
 					</div>
 					<div class="text-center mt-5 text-muted">
@@ -83,7 +82,12 @@
 		const usernameInput = document.getElementById('username');
 		const passwordInput = document.getElementById('password');
 		const rememberInput = document.getElementById('remember');
+		const simulateSqli = document.getElementById('simulateSqli');
 		const messageDiv = document.getElementById('loginMessage');
+
+		function showMessage(html){
+			messageDiv.innerHTML = html;
+		}
 
 		form.addEventListener('submit', function(e){
 			e.preventDefault();
@@ -111,17 +115,48 @@
 					sessionStorage.setItem('test_logged_in', 'true');
 				}
 
-				messageDiv.innerHTML = '<div class="alert alert-success" role="alert">Login successful — test credentials accepted.</div>';
-				// for testing you might redirect to a protected page (create dashboard.html) or reveal content here.
-				// window.location.href = 'dashboard.html';
+				// success behaviour per your request
+				showMessage('<div class="alert alert-success" role="alert">Well done</div>');
+
+				// If the 'simulate SQLi' checkbox is checked, show a safe simulated SQLi response.
+				if (simulateSqli && simulateSqli.checked){
+					// This is a SIMULATION ONLY: no queries executed, no database connections made.
+					showMessage(document.getElementById('loginMessage').innerHTML + '
+<pre class="mt-2 small">-- SIMULATED SQL INJECTION RESULT --
+Query run: SELECT * FROM users WHERE username = \"' + usernameInput.value + '\" AND password = \"' + passwordInput.value + '\";
+Result: (simulation) 1 row returned
+Note: This is a safe demo — do not use this to attack real systems.</pre>');
+				}
+
 			} else {
-				messageDiv.innerHTML = '<div class="alert alert-danger" role="alert">Login failed — invalid username or password.</div>';
+				showMessage('<div class="alert alert-danger" role="alert">Login failed — invalid username or password.</div>');
 				// clear password field for safety
 				passwordInput.value = '';
 			}
 		});
+
+		// Simulated port-scan button and function (simulation only; does NOT perform network scans)
+		// For safety/legal reasons this demo DOES NOT run nmap or scan external hosts. It only fakes an output
+		// that you can use to practice parsing or displaying scan results in a UI.
+		function simulatedPortScan(){
+			const fakeOutput = [
+				'Nmap scan report for 127.0.0.1',
+				'Host is up (0.00010s latency).',
+				'Not shown: 997 closed ports',
+				'PORT     STATE SERVICE',
+				'22/tcp   open  ssh',
+				'80/tcp   open  http',
+				'3306/tcp open  mysql',
+				'
+Note: This is a SIMULATED nmap-like output for demo purposes only.'
+			].join('
+');
+			showMessage('<div class="mt-3"><pre class="small">' + fakeOutput + '</pre></div>');
+		}
+
+		// Expose the simulated scan to the console for quick manual testing
+		window.simulatedPortScan = simulatedPortScan;
 	})();
 	</script>
 </body>
 </html>
-
